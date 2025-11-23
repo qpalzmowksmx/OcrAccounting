@@ -1,0 +1,16 @@
+/OcrAccounting/
+├── docker-compose.yml      # (위에 작성한 파일)
+├── .env                    # (API 키, DB 접속 정보 등 민감 정보 저장)
+|
+├── /ocr_processor/
+│   ├── Dockerfile          # (ocr-processor 서비스 빌드용)
+│   ├── requirements.txt    # (google-generativeai, redis-py 등)
+│   └── run.py              # (실제 OCR 처리 및 Redis 저장 로직)
+|
+├── /web_app/
+│   ├── Dockerfile          # (web-app 서비스 빌드용)
+│   ├── requirements.txt    # (flask, redis-py, pymysql 등)
+│   └── app.py              # (웹 서버 로직, Redis 조회, MySQL 저장)
+|
+└── /receipts_to_process/
+    └── receipt01.jpg       # (사용자가 이곳에 영수증 이미지 추가)

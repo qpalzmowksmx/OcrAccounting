@@ -1,0 +1,69 @@
+# docker-compose.yml (2025년 기준)
+version: '3.9'
+
+# 데이터를 받으면
+# ocr처리후
+# redis 에 임시저장
+# 사용자가 웹앱에서 확인후
+# 최종적으로 mysql 에 저장하는 구조
+
+# docker-compose run --rm ocr-processor 명령어로 컨테이너 껏다켰다해서 리소스 적게 쓰기
+# web-app 은 24시간 켜두기
+# redis, mysql 도 24시간 켜두기
+# 데이터 읽은걸 변환하는건 제미나이-flash api 사용
+# docker-compose up을 실행하면, docker-compose.yml 파일이 있는 위치에 redis_data와 mysql_data 폴더가 자동으로 생성
+# docker-compose.yml (2025년 기준 최종 추천 버전)
+
+services:
+  # 1. OCR 처리를 수행하는 파이썬 스크립트 실행기
+  ocr-processor:
+    build:
+      context: ./ocr_processor
+    container_name: ocr_processor
+    env_file:
+      - .env
+    volumes:
+      - ./receipts_to_process:/app/receipts_to_process # 영수증 폴더는 직접 접근이 편한 바인드 마운트 유지
+    depends_on:
+      - redis
+
+  # 2. 회계 담당자가 사용할 웹 애플리케이션 (Flask 또는 FastAPI)
+  web-app:
+    build:
+      context: ./web_app
+    container_name: web_app
+    ports:
+      - "5001:5000" # 외부(사용자 브라우저)에서 접속해야 하므로 포트 개방
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - db
+
+  # 3. 1차 임시 저장소 (Redis)
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis_db
+    # ports: # 주석 처리. web-app이 Docker 내부 네트워크로 redis에 직접 접속
+    #   - "6379:6379"
+    volumes:
+      - redis_data:/data # MySQL과 동일하게 Docker Volume 사용으로 통일
+
+  # 4. 최종 데이터 저장소 (MySQL)
+  db:
+    image: mysql:8.4
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    # ports: # 주석 처리. web-app이 Docker 내부 네트워크로 db에 직접 접속
+    #   - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+# Docker가 관리하는 데이터 영속성 영역 정의 (일관성 유지)
+volumes:
+  redis_data:
+  mysql_data:
