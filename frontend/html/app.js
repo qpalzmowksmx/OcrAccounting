@@ -6,10 +6,52 @@ const API_BASE_URL = '/api';
 
 // --- DOM 요소 가져오기 ---
 // 각 사분면의 내용이 표시될 영역을 미리 찾아두기
+// 1차 선언모음인데 주석처리
+// const q2Content = document.querySelector('#q2 .content-area');
+// const q4Content = document.querySelector('#q4 .content-area');
+// const q3Content = document.querySelector('#q3 .content-area');
+// const q3Form = document.querySelector('#category-form');
+
+// ./frontend/html/app.js
+
+// 백엔드 API의 기본 경로 설정
+const API_BASE_URL = '/api';
+
+// --- DOM 요소 가져오기 (모든 요소를 이 곳에서 한번만 선언합니다) ---
+// [화면 1]
+const uploadForm = document.querySelector('#upload-form');
+const fileInput = document.querySelector('#receipt-file-input');
+const uploadStatus = document.querySelector('#upload-status');
+
+// [화면 2]
 const q2Content = document.querySelector('#q2 .content-area');
-const q4Content = document.querySelector('#q4 .content-area');
+
+// [화면 3]
 const q3Content = document.querySelector('#q3 .content-area');
 const q3Form = document.querySelector('#category-form');
+
+// [화면 4]
+const q4Content = document.querySelector('#q4 .content-area');
+
+
+// --- API 호출 함수들 ---
+// (이 아래부터는 기존 함수 코드 그대로...)
+
+/**
+ * [화면 2] 미승인 영수증 목록을 가져와 화면에 표시하는 함수
+ */
+async function fetchUnverifiedReceipts() {
+    // ...
+}
+
+/**
+ * [화면 4] 승인 완료된 영수증 목록을 가져와 화면에 표시하는 함수
+ */
+async function fetchVerifiedReceipts() {
+    // ...
+}
+
+// ... 나머지 모든 함수와 이벤트 리스너 코드들 ...
 
 // --- API 호출 함수들 ---
 
@@ -63,72 +105,7 @@ async function fetchVerifiedReceipts() {
 
         if (receipts.length === 0) {
             q4Content.innerHTML += '<p>승인 완료된 영수증이 없습니다.</p>';
-            return;
-        }
 
-        receipts.forEach(receipt => {
-            const receiptElement = document.createElement('div');
-            receiptElement.className = 'receipt-card';
-            // items_json은 문자열이므로 JSON.parse()로 객체로 변환
-            const items = JSON.parse(receipt.items_json || '[]');
-            receiptElement.innerHTML = `
-                <strong>상호명:</strong> ${receipt.vendor_name || 'N/A'}<br>
-                <strong>구매일:</strong> ${receipt.purchase_date || 'N/A'}<br>
-                <strong>승인일:</strong> ${new Date(receipt.approved_at).toLocaleString()}<br>
-                <strong>총액:</strong> ${Number(receipt.total_amount).toLocaleString()}원<br>
-                 <ul>
-                    ${items.map(item => `<li>${item.name} (${item.category}): ${Number(item.price).toLocaleString()}원</li>`).join('')}
-                </ul>
-            `;
-            q4Content.appendChild(receiptElement);
-        });
-    } catch (error) {
-        q4Content.innerHTML = `<p style="color: red;">${error.message}</p>`;
-    }
-}
-
-/**
- * [화면 3] 카테고리 목록을 가져와 화면에 표시하는 함수
- */
-async function fetchCategories() {
-    try {
-        const response = await fetch(`${API_BASE_URL}/categories`);
-        if (!response.ok) throw new Error('서버에서 카테고리 목록을 가져오는데 실패했습니다.');
-
-        const categories = await response.json();
-        const listElement = q3Content.querySelector('.category-list');
-        listElement.innerHTML = '<h4>등록된 카테고리</h4>';
-        
-        const ul = document.createElement('ul');
-        categories.forEach(cat => {
-            const li = document.createElement('li');
-            li.textContent = `${cat.name} (${cat.description || '설명 없음'})`;
-            ul.appendChild(li);
-        });
-        listElement.appendChild(ul);
-
-    } catch (error) {
-        q3Content.innerHTML += `<p style="color: red;">${error.message}</p>`;
-    }
-}
-
-
-/**
- * 영수증을 승인하는 함수 (Redis -> MySQL)
- * @param {string} receiptId - 승인할 영수증의 고유 ID
- */
-async function approveReceipt(receiptId) {
-    try {
-        const response = await fetch(`${API_BASE_URL}/approve-receipt/${receiptId}`, {
-            method: 'POST'
-        });
-        if (!response.ok) throw new Error('영수증 승인에 실패했습니다.');
-
-        alert('성공적으로 승인되었습니다!');
-        // 데이터가 변경되었으므로, 화면 2와 화면 4의 목록을 모두 새로고침!!
-        fetchUnverifiedReceipts();
-        fetchVerifiedReceipts();
-    } catch (error) {
         alert(error.message);
     }
 }
@@ -169,6 +146,78 @@ async function addCategory(event) {
     }
 }
 
+// ./frontend/html/app.js
+
+// ... 기존 코드 상단 ...
+// --- DOM 요소 가져오기 ---
+const q2Content = document.querySelector('#q2 .content-area');
+// ...
+const uploadForm = document.querySelector('#upload-form'); // 새로 추가
+const fileInput = document.querySelector('#receipt-file-input'); // 새로 추가
+const uploadStatus = document.querySelector('#upload-status'); // 새로 추가
+
+// ... 기존 API 호출 함수들 ...
+
+/**
+ * [화면 1] 파일을 서버로 업로드하는 함수
+ * @param {Event} event - 폼 제출 이벤트 객체
+ */
+async function handleUpload(event) {
+    event.preventDefault(); // 폼 제출 시 새로고침 방지
+
+    const files = fileInput.files;
+    if (files.length === 0) {
+        uploadStatus.textContent = '업로드할 파일을 선택해주세요.';
+        uploadStatus.style.color = 'orange';
+        return;
+    }
+
+    // 파일들을 담을 FormData 객체 생성
+    const formData = new FormData();
+    for (const file of files) {
+        formData.append('receipts', file); // 백엔드에서 받을 키('receipts')와 파일 추가
+    }
+
+    uploadStatus.textContent = '업로드 중...';
+    uploadStatus.style.color = 'blue';
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/upload-receipts`, {
+            method: 'POST',
+            body: formData 
+            // 중요: FormData를 사용할 때는 'Content-Type' 헤더를 절대 설정하지 말것!
+            // 브라우저가 자동으로 'multipart/form-data'와 경계(boundary)를 설정해줌
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || '서버 오류가 발생했습니다.');
+        }
+        
+        uploadStatus.textContent = result.message;
+        uploadStatus.style.color = 'green';
+        uploadForm.reset(); // 성공 시 폼 초기화
+
+    } catch (error) {
+        uploadStatus.textContent = `오류: ${error.message}`;
+        uploadStatus.style.color = 'red';
+    }
+}
+
+
+// --- 이벤트 리스너 설정 ---
+
+// ... 기존 이벤트 리스너들 ...
+// q2Content.addEventListener(...);
+// q3Form.addEventListener(...);
+
+// 파일 업로드 폼의 'submit' 이벤트에 handleUpload 함수를 연결 (새로 추가)
+uploadForm.addEventListener('submit', handleUpload);
+
+
+// ...
+// document.addEventListener('DOMContentLoaded', initializeApp);
 
 // --- 이벤트 리스너 설정 ---
 
@@ -197,3 +246,4 @@ q3Form.addEventListener('submit', addCategory);
 
 // HTML 문서의 모든 요소가 로드된 후, 앱을 초기화
 document.addEventListener('DOMContentLoaded', initializeApp);
+

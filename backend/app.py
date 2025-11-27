@@ -35,15 +35,24 @@
 
 import os
 import json
-import redis
-import pymysql
-from flask import Flask, jsonify, request
-from flask_cors import CORS # CORS 문제를 해결하기 위한 라이브러리
+import redis # type: ignore
+import pymysql # type: ignore
+from flask import Flask, jsonify, request # type: ignore
+from werkzeug.utils import secure_filename # type: ignore # 파일명을 안전하게 처리하기 위해 import
+import uuid # 고유한 파일명을 만들기 위해 import
+from flask_cors import CORS # type: ignore # CORS 문제를 해결하기 위한 라이브러리
 
 # --- 1. 애플리케이션 설정 ---
 
 # Flask 앱 초기화
 app = Flask(__name__)
+CORS(app)
+
+# 업로드된 파일을 저장할 컨테이너 내부 경로 설정
+# 이 경로는 docker-compose.yml의 ocr-processor 볼륨과 연결
+UPLOAD_FOLDER = '/app/receipts_to_process' 
+# 폴더가 없으면 생성
+os.makedirs(UPLOAD_FOLDER, exist_ok=True) 
 
 # CORS 설정: 프론트엔드(Nginx)로부터 오는 모든 요청을 허용
 # 프론트엔드(예: localhost:5001)와 백엔드(예: localhost:5000)는 출처(Origin)가 다르기 때문에 필수입니다.
@@ -87,6 +96,46 @@ def get_mysql_connection():
 # --- 3. API 엔드포인트 (라우트) 정의 ---
 
 # API가 잘 동작하는지 확인하기 위한 기본 라우트
+
+# ... 기존 API 엔드포인트들 ...
+
+# [화면 1] 영수증 파일 업로드 처리
+@app.route('/api/upload-receipts', methods=['POST'])
+def upload_receipts():
+    # 'receipts' 라는 키로 파일이 넘어왔는지 확인
+    if 'receipts' not in request.files:
+        return jsonify({"error": "No file part in the request"}), 400
+
+    files = request.files.getlist('receipts')
+    
+    if not files or files[0].filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    uploaded_count = 0
+    errors = []
+
+    for file in files:
+        if file:
+            try:
+                # 파일명을 안전하게 처리 (예: ../../etc/passwd 같은 공격 방지)
+                original_filename = secure_filename(file.filename)
+                # 파일명 중복을 피하기 위해 고유 ID와 원본 파일명을 조합
+                unique_filename = f"{uuid.uuid4().hex}_{original_filename}"
+                
+                # 파일을 지정된 경로에 저장
+                file.save(os.path.join(UPLOAD_FOLDER, unique_filename))
+                uploaded_count += 1
+            except Exception as e:
+                errors.append(f"Could not save file {file.filename}: {e}")
+
+    if uploaded_count > 0:
+        return jsonify({
+            "message": f"{uploaded_count}개의 파일이 성공적으로 업로드되었습니다.",
+            "errors": errors
+        })
+    else:
+        return jsonify({"error": "파일 업로드에 실패했습니다.", "details": errors}), 500
+    
 @app.route('/api/health')
 def health_check():
     return jsonify({"status": "ok"})
