@@ -1,0 +1,10 @@
+# ./backend/requirements.txt
+flask
+flask-cors  # CORS 처리를 위해 필수
+gunicorn
+redis
+pymysql
+python-dotenv
+
+# 그 외 필요한 라이브러리들...
+# app.py 파일에 미리미리 mysql에 테이블이나 기타준비가 되어있어야함

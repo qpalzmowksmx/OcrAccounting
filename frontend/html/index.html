@@ -1,0 +1,64 @@
+<!-- ./frontend/html/index.html -->
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영수증 비용처리 시스템</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="grid-container">
+        <!-- [화면 1] 지출 등록 -->
+        <div class="quadrant" id="q1">
+            <h2>1. 지출 등록</h2>
+            <div class="content-area">
+                <form id="upload-form">
+                    <p>처리할 영수증 이미지 파일을 선택하세요.</p>
+                    <input type="file" id="receipt-file-input" name="receipts" accept="image/*" multiple>
+                    <button type="submit">업로드 시작</button>
+                </form>
+                <div id="upload-status">
+                    <!-- 업로드 상태 메시지가 여기에 표시됩니다 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- [화면 2] 지출 확인 (미승인) -->
+        <div class="quadrant" id="q2">
+            <h2>2. 지출 확인 (미승인)</h2>
+            <div class="content-area">
+                <!-- JavaScript가 미승인 목록을 여기에 채웁니다 -->
+                <p>로딩 중...</p>
+            </div>
+        </div>
+
+        <!-- [화면 3] 수동 항목 등록 -->
+        <div class="quadrant" id="q3">
+            <h2>3. 수동 항목 등록</h2>
+            <div class="content-area">
+                <form id="category-form">
+                    <h4>새 카테고리 추가</h4>
+                    <input type="text" name="category-name" placeholder="카테고리 이름" required>
+                    <input type="text" name="category-desc" placeholder="설명 (선택)">
+                    <button type="submit">추가</button>
+                </form>
+                <hr>
+                <div class="category-list">
+                    <!-- JavaScript가 카테고리 목록을 여기에 채웁니다 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- [화면 4] 전체 보기 (승인 완료) -->
+        <div class="quadrant" id="q4">
+            <h2>4. 전체 보기 (승인 완료)</h2>
+            <div class="content-area">
+                <!-- JavaScript가 승인 완료 목록을 여기에 채웁니다 -->
+                <p>로딩 중...</p>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

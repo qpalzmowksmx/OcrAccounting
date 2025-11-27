@@ -1,0 +1,111 @@
+/* ./frontend/html/style.css */
+
+/* --- 기본 & 레이아웃 --- */
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: #f4f7f9;
+    color: #333;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 1:1 비율의 2개 컬럼 */
+    grid-template-rows: 1fr 1fr;    /* 1:1 비율의 2개 로우 */
+    width: 100vw;
+    height: 100vh;
+    gap: 16px; /* 칸 사이 간격 */
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.quadrant {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column; /* 제목과 내용을 세로로 배치 */
+}
+
+.quadrant h2 {
+    margin: 0;
+    padding: 16px;
+    font-size: 1.2em;
+    border-bottom: 1px solid #eef;
+}
+
+.content-area {
+    padding: 16px;
+    overflow-y: auto; /* 내용이 길어지면 스크롤바 자동 생성 */
+    flex-grow: 1; /* 남은 공간을 모두 차지하도록 설정 */
+}
+
+/* --- 영수증 카드 스타일 --- */
+.receipt-card {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 12px;
+    font-size: 0.9em;
+}
+
+.receipt-card strong {
+    color: #555;
+}
+
+.receipt-card ul {
+    list-style-type: none;
+    padding-left: 10px;
+    margin: 8px 0;
+    border-left: 2px solid #ddd;
+}
+
+/* --- 폼 & 버튼 스타일 --- */
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+input[type="text"], input[type="file"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    background-color: #007bff;
+    color: white;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+.approve-btn {
+    background-color: #28a745;
+    margin-top: 10px;
+}
+
+.approve-btn:hover {
+    background-color: #218838;
+}
+
+
+/* --- 반응형 레이아웃 --- */
+/* 화면 너비가 800px보다 작아지면 세로로 4단으로 변경 */
+@media (max-width: 800px) {
+    .grid-container {
+        grid-template-columns: 1fr; /* 컬럼을 1개로 변경 */
+        grid-template-rows: auto;   /* 각 로우의 높이는 내용에 맞게 자동 조절 */
+        height: auto; /* 전체 높이도 자동 조절, 스크롤 가능하게 */
+    }
+}

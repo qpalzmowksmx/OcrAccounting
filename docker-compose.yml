@@ -27,18 +27,40 @@ services:
     depends_on:
       - redis
 
-  # 2. 회계 담당자가 사용할 웹 애플리케이션 (Flask 또는 FastAPI)
-  web-app:
+  # # 2. 회계 담당자가 사용할 웹 애플리케이션 (폐기)
+  # web-app:
+  #   build:
+  #     context: ./web_app
+  #   container_name: web_app
+  #   ports:
+  #     - "5001:5000" # 외부(사용자 브라우저)에서 접속해야 하므로 포트 개방
+  #   env_file:
+  #     - .env
+  #   depends_on:
+  #     - redis
+  #     - db
+
+# 2. 프론트엔드 (Nginx): 사용자에게 UI를 보여주고 API 요청을 백엔드로 전달
+  frontend:
     build:
-      context: ./web_app
-    container_name: web_app
+      context: ./frontend # ./frontend 폴더에 Dockerfile과 nginx.conf, UI 파일들 위치
+    container_name: frontend_web
     ports:
-      - "5001:5000" # 외부(사용자 브라우저)에서 접속해야 하므로 포트 개방
+      - "5001:80" # 사용자는 5001 포트로 접속
+    depends_on:
+      - backend
+
+  # 3. 백엔드 (Python API 서버)
+  backend:
+    build:
+      context: ./backend # 기존 web_app을 backend 폴더로 변경
+    container_name: backend_api
+    # ports: # 외부로 직접 노출할 필요 없음. Nginx가 대신 연결해줌
     env_file:
       - .env
     depends_on:
       - redis
-      - db
+      - db  
 
   # 3. 1차 임시 저장소 (Redis)
   redis:
