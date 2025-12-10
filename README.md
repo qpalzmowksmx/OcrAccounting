@@ -18,7 +18,7 @@ Project Structure
 
 How to Use
 
-1. Access the Web UI**: Open your browser and navigate to `http://localhost:5001`.
+1. Access the Web UI: Open your browser and navigate to `http://localhost:5001`.
 
 2. Upload Receipts**: In panel-1, select one or more receipt image files and click "Upload".
     The files will be saved to the `receipts_to_process` folder.
