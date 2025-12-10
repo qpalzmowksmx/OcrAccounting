@@ -70,6 +70,33 @@ graph TD
 - Containerization: Docker, Docker Compose
 - OCR / AI : Tesseract OCR, Google Gemini API-FreeVersion
 
+###
+db_init/init.sql
+위치는 제대로 수동지정해주기!!
+
+###
+example-format
+
+# .env.example
+
+# Gemini API 키
+GEMINI_API_KEY=
+
+# MySQL 설정
+MYSQL_ROOT_PASSWORD=
+MYSQL_DATABASE=
+MYSQL_USER=
+MYSQL_PASSWORD=
+
+# Redis 호스트 (보통 docker-compose 서비스 이름)
+REDIS_HOST=redis
+
+###
+You must be 
+
+mkdir receipts_processed
+
+to successfully runing
 
 
 This project is licensed under the MIT License.

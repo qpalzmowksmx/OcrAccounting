@@ -15,7 +15,21 @@ version: '3.9'
 # docker-compose.yml (2025년 기준 최종 추천 버전)
 
 services:
-  # 1. OCR 처리를 수행하는 파이썬 스크립트 실행기
+  # ... (frontend 서비스) ...
+
+  backend:
+    build:
+      context: ./backend
+    container_name: backend_api
+    env_file:
+      - .env
+    volumes:
+      # backend는 파일을 업로드 받아 이 폴더에 넣는 역할만 함
+      - ./receipts_to_process:/app/receipts_to_process
+    depends_on:
+      - redis
+      - db
+
   ocr-processor:
     build:
       context: ./ocr_processor
@@ -23,9 +37,16 @@ services:
     env_file:
       - .env
     volumes:
-      - ./receipts_to_process:/app/receipts_to_process # 영수증 폴더는 직접 접근이 편한 바인드 마운트 유지
+      # ocr-processor는 두 개의 폴더를 사용함
+      # 1. 이 폴더에서 파일을 읽어오고,
+      - ./receipts_to_process:/app/receipts_to_process
+      # 2. 처리가 끝나면 이 폴더로 파일을 옮김
+      - ./receipts_processed:/app/receipts_processed
     depends_on:
       - redis
+
+  # ... (redis, db 서비스) ...
+
 
   # # 2. 회계 담당자가 사용할 웹 애플리케이션 (폐기)
   # web-app:
@@ -61,6 +82,8 @@ services:
     depends_on:
       - redis
       - db  
+    volumes:
+      - ./receipts_to_process:/app/receipts_to_process # 영수증 폴더 마운트
 
   # 3. 1차 임시 저장소 (Redis)
   redis:
