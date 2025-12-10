@@ -1,6 +1,6 @@
 # OcrAccounting
 
-
+docker-compose up --build -d
 
 
 Project Structure
